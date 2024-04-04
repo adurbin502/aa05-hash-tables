@@ -10,7 +10,9 @@ class HashTable { // get O(1), set O(1), deleteKey O(1)
 
   constructor(numBuckets = 8) {
     // Initialize your buckets here
-    // Your code here 
+    this.capacity = numBuckets;
+    this.data = new Array(this.capacity).fill(null);
+    this.count = 0;
   }
 
   hash(key) {
@@ -30,22 +32,95 @@ class HashTable { // get O(1), set O(1), deleteKey O(1)
 
 
   insert(key, value) {
-    // Your code here 
+    const loadFactor = this.count / this.capacity;
+    if (loadFactor > 0.7) {
+      this.resize()
+    }
+
+    const index = this.hashMod(key);
+    const keyPair = new KeyValuePair(key, value);
+
+    if (!this.data[index]) {
+      this.data[index] = keyPair;
+    } else {
+      let current = this.data[index];
+      while (current) {
+        if (current.key === key) {
+          current.value = value;
+          return;
+        }
+
+        current = current.next;
+      }
+
+      keyPair.next = this.data[index];
+      this.data[index] = keyPair;
+    };
+
+    this.count++;
   }
 
 
   read(key) {
-    // Your code here 
+    const index = this.hashMod(key);
+
+    let current = this.data[index];
+    while (current) {
+      if (current.key === key) {
+        return current.value;
+      }
+
+      current = current.next;
+    };
+
+    return undefined;
   }
 
 
   resize() {
-    // Your code here 
+    const copyData = this.data.slice();
+
+    this.capacity *= 2;
+
+    this.data = new Array(this.capacity).fill(null);
+
+    this.count = 0;
+
+    for (const keyPair of copyData) {
+      let current = keyPair;
+      while (current) {
+        this.insert(current.key, current.value);
+        current = current.next;
+      }
+    };
+
   }
 
 
   delete(key) {
-    // Your code here 
+    const index = this.hashMod(key);
+    //prev.next -> current.next
+    //prev = current
+    let current = this.data[index];
+    let prev = null;
+
+    while (current) {
+      if (current.key === key) {
+        if (prev === null) {
+          this.data[index] = current.next;
+        } else {
+          prev.next = current.next;
+        };
+
+        this.count--;
+        return undefined;
+      }
+
+      prev = current;
+      current = current.next
+    };
+
+    return "Key not found"
   }
 }
 
